@@ -14,21 +14,21 @@ object Priority {
 
 // sealed trait Node would be also OK
 sealed abstract class Node {
-  val indent = " " * 4
+  val indent: String = " " * 4
 
   def toStr = "error: toStr not implemented"
 }
 
 case class IntNum(value: Integer) extends Node {
-  override def toStr = value.toString
+  override def toStr: String = value.toString
 }
 
 case class FloatNum(value: Double) extends Node {
-  override def toStr = value.toString
+  override def toStr: String = value.toString
 }
 
 case class StringConst(value: String) extends Node {
-  override def toStr = value
+  override def toStr: String = value
 }
 
 case class TrueConst() extends Node {
@@ -40,12 +40,11 @@ case class FalseConst() extends Node {
 }
 
 case class Variable(name: String) extends Node {
-  override def toStr = name
+  override def toStr: String = name
 }
 
 case class Unary(op: String, expr: Node) extends Node {
-
-  override def toStr = {
+  override def toStr: String = {
     var str = expr.toStr
     expr match {
       case e@BinExpr(_, _, _) => if (Priority.binary(e.op) <= Priority.unary(op)) {
@@ -58,12 +57,10 @@ case class Unary(op: String, expr: Node) extends Node {
     }
     op + " " + str
   }
-
 }
 
 case class BinExpr(op: String, left: Node, right: Node) extends Node {
-
-  override def toStr = {
+  override def toStr: String = {
     var leftStr = left.toStr
     var rightStr = right.toStr
     left match {
@@ -89,27 +86,27 @@ case class BinExpr(op: String, left: Node, right: Node) extends Node {
 }
 
 case class IfElseExpr(cond: Node, left: Node, right: Node) extends Node {
-  override def toStr = left.toStr + " if " + cond.toStr + " else " + right.toStr
+  override def toStr: String = left.toStr + " if " + cond.toStr + " else " + right.toStr
 }
 
 case class Assignment(left: Node, right: Node) extends Node {
-  override def toStr = left.toStr + " = " + right.toStr
+  override def toStr: String = left.toStr + " = " + right.toStr
 }
 
 case class Subscription(expr: Node, sub: Node) extends Node {
-  override def toStr = expr.toStr + "[" + sub.toStr + "]"
+  override def toStr: String = expr.toStr + "[" + sub.toStr + "]"
 }
 
 case class KeyDatum(key: Node, value: Node) extends Node {
-  override def toStr = key.toStr + ": " + value.toStr
+  override def toStr: String = key.toStr + ": " + value.toStr
 }
 
 case class GetAttr(expr: Node, attr: String) extends Node {
-  override def toStr = expr.toStr + "." + attr
+  override def toStr: String = expr.toStr + "." + attr
 }
 
 case class IfInstr(cond: Node, left: Node) extends Node {
-  override def toStr = {
+  override def toStr: String = {
     var str = "if " + cond.toStr + ":\n"
     str += left.toStr.replaceAll("(?m)^", indent)
     str
@@ -117,7 +114,7 @@ case class IfInstr(cond: Node, left: Node) extends Node {
 }
 
 case class IfElseInstr(cond: Node, left: Node, right: Node) extends Node {
-  override def toStr = {
+  override def toStr: String = {
     var str = "if " + cond.toStr + ":\n"
     str += left.toStr.replaceAll("(?m)^", indent)
     str += "\nelse:\n"
@@ -127,26 +124,25 @@ case class IfElseInstr(cond: Node, left: Node, right: Node) extends Node {
 }
 
 case class WhileInstr(cond: Node, body: Node) extends Node {
-  override def toStr = {
+  override def toStr: String = {
     "while " + cond.toStr + ":\n" + body.toStr.replaceAll("(?m)^", indent)
   }
 }
 
 case class InputInstr() extends Node {
-  override def toStr = "input()"
+  override def toStr: String = "input()"
 }
 
 case class ReturnInstr(expr: Node) extends Node {
-  override def toStr = "return " + expr.toStr
+  override def toStr: String = "return " + expr.toStr
 }
 
 case class PrintInstr(expr: Node) extends Node {
-  override def toStr = "print " + expr.toStr
+  override def toStr: String = "print " + expr.toStr
 }
 
 case class FunCall(name: Node, args_list: Node) extends Node {
-
-  override def toStr = {
+  override def toStr: String = {
     args_list match {
       case NodeList(list) => name.toStr + "(" + list.map(_.toStr).mkString("", ",", "") + ")"
       case _ => name.toStr + "(" + args_list.toStr + ")"
@@ -155,7 +151,7 @@ case class FunCall(name: Node, args_list: Node) extends Node {
 }
 
 case class FunDef(name: String, formal_args: Node, body: Node) extends Node {
-  override def toStr = {
+  override def toStr: String = {
     var str = "\ndef " + name + "(" + formal_args.toStr + "):\n"
     str += body.toStr.replaceAll("(?m)^", indent) + "\n"
     str
@@ -163,16 +159,16 @@ case class FunDef(name: String, formal_args: Node, body: Node) extends Node {
 }
 
 case class LambdaDef(formal_args: Node, body: Node) extends Node {
-  override def toStr = "lambda " + formal_args.toStr + ": " + body.toStr
+  override def toStr: String = "lambda " + formal_args.toStr + ": " + body.toStr
 }
 
 case class ClassDef(name: String, inherit_list: Node, suite: Node) extends Node {
-  override def toStr = {
+  override def toStr: String = {
     val str = "\nclass " + name
     var inheritStr = ""
     val suiteStr = ":\n" + suite.toStr.replaceAll("(?m)^", indent)
     inherit_list match {
-      case NodeList(x) => if (x.length > 0) inheritStr = "(" + x.map(_.toStr).mkString("", ",", "") + ")"
+      case NodeList(x) => if (x.nonEmpty) inheritStr = "(" + x.map(_.toStr).mkString("", ",", "") + ")"
       case _ =>
     }
     str + inheritStr + suiteStr
@@ -180,26 +176,26 @@ case class ClassDef(name: String, inherit_list: Node, suite: Node) extends Node 
 }
 
 case class NodeList(list: List[Node]) extends Node {
-  override def toStr = {
+  override def toStr: String = {
     list.map(_.toStr).mkString("", "\n", "")
   }
 }
 
 case class KeyDatumList(list: List[KeyDatum]) extends Node {
-  override def toStr = list.map(_.toStr).mkString("{", ",", "}")
+  override def toStr: String = list.map(_.toStr).mkString("{", ",", "}")
 }
 
 case class IdList(list: List[Variable]) extends Node {
-  override def toStr = list.map(_.toStr).mkString("", ",", "")
+  override def toStr: String = list.map(_.toStr).mkString("", ",", "")
 }
 
 case class ElemList(list: List[Node]) extends Node {
-  override def toStr = list.map(_.toStr).mkString("[", ",", "]")
+  override def toStr: String = list.map(_.toStr).mkString("[", ",", "]")
 }
 
 case class Tuple(list: List[Node]) extends Node {
-  override def toStr = if (list.length == 0) "()"
-  else if (list.length == 1) "(" + list(0).toStr + ",)"
+  override def toStr: String = if (list.isEmpty) "()"
+  else if (list.length == 1) "(" + list.head.toStr + ",)"
   else list.map(_.toStr).mkString("(", ",", ")")
 }
 
