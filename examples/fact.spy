@@ -1,0 +1,62 @@
+# simplified python factorial
+# just to show parsing
+# do not expect optimizations
+
+
+# factorial, recursive
+def fact(n):
+{
+  if n==0:
+  {
+    return 1
+  }
+  else:
+  {
+    if(n==1):
+    {
+      return 1
+    }
+    else:
+    {
+      return n*fact(n-1)
+    }
+  }
+}
+
+# factorial, tail recursive
+def fact2(n):
+{
+  def factorialAcc(acc, n): 
+  {
+    if n <= 1:
+    {
+      return acc
+    }
+    else:
+    {
+      return factorialAcc(n * acc, n - 1)
+    }
+  }
+
+  return factorialAcc(1, n)
+}
+
+
+# factorial, iterative
+def fact3(x):
+{
+    c = 1; res = 1;    
+
+    while c <= x:
+    {
+    
+        res = res * c;
+        c = c + 1;
+    }        
+    return res;
+}
+
+
+print fact(10);
+print fact2(10);
+print fact3(10);
