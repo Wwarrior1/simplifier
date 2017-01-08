@@ -1,0 +1,42 @@
+Type of Parsers:
+~       A parser combinator for sequential composition.
+        `p ~ q` succeeds if `p` succeeds and `q` succeeds on the input left over by `p`.
+
+~>      A parser combinator for sequential composition which keeps only the right result.
+        `p ~> q` succeeds if `p` succeeds and `q` succeeds on the input left over by `p`.
+
+<~      A parser combinator for sequential composition which keeps only the left result.
+        `p <~ q` succeeds if `p` succeeds and `q` succeeds on the input left over by `p`.
+
+~!      A parser combinator for non-back-tracking sequential composition.
+        `p ~! q` succeeds if `p` succeeds and `q` succeeds on the input left over by `p`.
+                 In case of failure, no back-tracking is performed (in an earlier parser produced by the `|` combinator).
+
+|       A parser combinator for alternative composition.
+        `p | q` succeeds if `p` succeeds or `q` succeeds.
+                Note that `q` is only tried if `p`s failure is non-fatal (i.e., back-tracking is allowed).
+
+|||     A parser combinator for alternative with longest match composition.
+        `p ||| q` succeeds if `p` succeeds or `q` succeeds.
+                  If `p` and `q` both succeed, the parser that consumed the most characters accepts.
+
+^^      A parser combinator for function application.
+        `p ^^ f` succeeds if `p` succeeds; it returns `f` applied to the result of `p`.
+
+^^^     A parser combinator that changes a successful result into the specified value.
+        `p ^^^ v` succeeds if `p` succeeds; discards its result, and returns `v` instead.
+
+^?      A parser combinator for partial function application.
+        `p ^? (f, error)` succeeds if `p` succeeds AND `f` is defined at the result of `p`;
+                          in that case, it returns `f` applied to the result of `p`. If `f` is not applicable,
+                          error(the result of `p`) should explain why.
+        `p ^? f` succeeds if `p` succeeds AND `f` is defined at the result of `p`;
+                 in that case, it returns `f` applied to the result of `p`.
+
+Shortcuts for Combinators:
+>>      Returns `into(fq)`
+*       Returns a parser that repeatedly parses what this parser parses.
+*       Returns a parser that repeatedly parses what this parser parses, interleaved with the `sep` parser.
+        The `sep` parser specifies how the results parsed by this parser should be combined.
++       Returns a parser that repeatedly (at least once) parses what this parser parses.
+?       Returns a parser that optionally parses what this parser parses.

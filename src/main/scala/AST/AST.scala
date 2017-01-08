@@ -130,7 +130,7 @@ case class WhileInstr(cond: Node, body: Node) extends Node {
 }
 
 case class InputInstr() extends Node {
-  override def toStr: String = "input()"
+  override def toStr = "input()"
 }
 
 case class ReturnInstr(expr: Node) extends Node {
@@ -193,11 +193,12 @@ case class ElemList(list: List[Node]) extends Node {
   override def toStr: String = list.map(_.toStr).mkString("[", ",", "]")
 }
 
+case object EmptyNode extends Node {
+  override def toStr = "EmptyNode"
+}
+
 case class Tuple(list: List[Node]) extends Node {
   override def toStr: String = if (list.isEmpty) "()"
   else if (list.length == 1) "(" + list.head.toStr + ",)"
   else list.map(_.toStr).mkString("(", ",", ")")
 }
-
-
-        

@@ -28,8 +28,8 @@ class Parser extends JavaTokenParsers {
     "while\\b".r
 
   val newl: Parser[Node] = """(\r?\n)|\r""".r ^^ StringConst
-  val lpar = rep1(newl) ~ "{" ~ rep(newl)
-  val rpar = rep(newl) ~ "}" ~ rep1(newl)
+  val lpar: Parser[~[~[List[Node], String], List[Node]]] = rep1(newl) ~ "{" ~ rep(newl)
+  val rpar: Parser[~[~[List[Node], String], List[Node]]] = rep(newl) ~ "}" ~ rep1(newl)
 
   val minPrec = 0
   val maxPrec: Int = precedenceList.length - 1
@@ -214,11 +214,32 @@ class Parser extends JavaTokenParsers {
     case target ~ expression => Assignment(target, expression)
   }
 
-  def if_else_stmt: Parser[Node] =
-    "if" ~> expression ~ (":" ~> suite) ~ ("else" ~ ":" ~> suite).? ^^ {
-      case expression ~ suite1 ~ Some(suite2) => IfElseInstr(expression, suite1, suite2)
-      case expression ~ suite ~ None => IfInstr(expression, suite)
+  def if_else_stmt: Parser[Node] = {
+    "if" ~> expression ~ (":" ~> suite) ~ ("elif" ~> expression ~ ":" ~ suite).* ~ ("else" ~ ":" ~> suite).? ^^ {
+      case expression ~ suite ~ elifList ~ None => {
+        val elifListToClean = elifList.map { case expr ~ ":" ~ suite => (expr, suite) }
+
+        def expandElif(elif: List[(Node, Node)]): Node = elif match {
+          case Nil => EmptyNode
+          case (headCond, headInstr) :: _ => NodeList(List(IfInstr(headCond, headInstr)))
+        }
+
+        IfElseInstr(expression, suite, expandElif(elifListToClean))
+      }
+      case expression ~ suite1 ~ elifList ~ Some(suite2) => {
+        val elifListToClean = elifList.map { case expr ~ ":" ~ suite => (expr, suite) }
+
+        def expandElif(elif: List[(Node, Node)], finalElse: Node): Node = elif match {
+          case Nil => finalElse
+          case (headCond, headInstr) :: tail =>
+            val elseInstr = expandElif(tail, finalElse)
+            NodeList(List(IfElseInstr(headCond, headInstr, elseInstr)))
+        }
+
+        IfElseInstr(expression, suite1, expandElif(elifListToClean, suite2))
+      }
     }
+  }
 
   def while_stmt: Parser[WhileInstr] = "while" ~> expression ~ (":" ~> suite) ^^ {
     case expression ~ suite => WhileInstr(expression, suite)
@@ -227,4 +248,3 @@ class Parser extends JavaTokenParsers {
   def input_instr: Parser[InputInstr] = "input" ~ "(" ~ ")" ^^^ InputInstr()
 
 }
-
