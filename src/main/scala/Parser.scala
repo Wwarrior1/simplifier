@@ -46,10 +46,10 @@ class Parser extends JavaTokenParsers {
     }
 
   def const: Parser[Node] = (
-    floatLiteral ^^ FloatNum // A parser combinator for function application. Returns / FloatNum / applied to the result of / floatLiteral /.
+    floatLiteral ^^ FloatNum
       | intLiteral ^^ IntNum
       | stringLiteral ^^ StringConst
-      | "True" ^^^ TrueConst() // A parser combinator that changes a successful result / "True" / into the specified value / TrueCons() /.
+      | "True" ^^^ TrueConst()
       | "False" ^^^ FalseConst()
     )
 
@@ -120,10 +120,17 @@ class Parser extends JavaTokenParsers {
     lvalue
       | const
       | "(" ~> expression <~ ")"
+      | "(" ~> expr_list_comma <~ ")" ^^ {
+      case NodeList(x) => Tuple(x)
+      case l => {
+        println("Warn: expr_list_comma didn't return NodeList (in Tuple)")
+        l
+      }
+    }
       | "[" ~> expr_list_comma <~ "]" ^^ {
       case NodeList(x) => ElemList(x)
       case l => {
-        println("Warn: expr_list_comma didn't return NodeList")
+        println("Warn: expr_list_comma didn't return NodeList (in List)")
         l
       }
     }
