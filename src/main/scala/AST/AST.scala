@@ -19,11 +19,14 @@ sealed abstract class Node {
   def toStr = "error: toStr not implemented"
 }
 
-case class IntNum(value: Integer) extends Node {
+sealed abstract class Const extends Node
+sealed abstract class Number extends Const
+
+case class IntNum(value: Int) extends Number {
   override def toStr: String = value.toString
 }
 
-case class FloatNum(value: Double) extends Node {
+case class FloatNum(value: Double) extends Number {
   override def toStr: String = value.toString
 }
 

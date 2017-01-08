@@ -94,6 +94,38 @@ class parserSpec extends Specification {
       parseString("[a,b,c]+[x,y]") mustEqual parseString("[a,b,c,x,y]")
     }
 
+    "simplify expressions" in {
+      parseString("x+0") mustEqual parseString("x")
+      parseString("0+x") mustEqual parseString("x")
+      parseString("x-x") mustEqual parseString("0")
+//      parseString("-x+x") mustEqual parseString("0")  // TODO
+      parseString("x*1") mustEqual parseString("x")
+      parseString("1*x") mustEqual parseString("x")
+      parseString("0*x") mustEqual parseString("0")
+      parseString("x or x") mustEqual parseString("x")
+      parseString("x and x") mustEqual parseString("x")
+      parseString("x or True") mustEqual parseString("True")
+      parseString("x or False") mustEqual parseString("x")
+      parseString("x and False") mustEqual parseString("False")
+      parseString("x and True") mustEqual parseString("x")
+      parseString("x==x") mustEqual parseString("True")
+      parseString("x>=x") mustEqual parseString("True")
+      parseString("x<=x") mustEqual parseString("True")
+      parseString("x!=x") mustEqual parseString("False")
+      parseString("x>x") mustEqual parseString("False")
+      parseString("x<x") mustEqual parseString("False")
+    }
+
+    "simplify division" in {
+      parseString("x/x") mustEqual parseString("1")
+      parseString("(x+y*z)/(x+y*z)") mustEqual parseString("1")
+//      parseString("(x+y)/(y+x)") mustEqual parseString("1")
+//      parseString("(x+y*z)/(y*z+x)") mustEqual parseString("1")
+//      parseString("1/(1/x)") mustEqual parseString("x")
+//      parseString("1/(1/(x-z))") mustEqual parseString("x-z")
+//      parseString("x*(1/y)") mustEqual parseString("x/y")
+    }
+
 //    "recognize power laws" in {
 //      parseString("x**y*x**z") must not(throwA[IllegalArgumentException])
 //      parseString("x**y*x**z") mustEqual parseString("x**(y+z)")
@@ -110,39 +142,6 @@ class parserSpec extends Specification {
 //      parseString("2+3*5") mustEqual parseString("17")
 //      parseString("not False") mustEqual parseString("True")
 //      parseString("not True") mustEqual parseString("False")
-//    }
-//
-//    "simplify division" in {
-//      parseString("x/x") mustEqual parseString("1")
-//      parseString("(x+y*z)/(x+y*z)") mustEqual parseString("1")
-//      parseString("(x+y)/(y+x)") mustEqual parseString("1")
-//      parseString("(x+y*z)/(y*z+x)") mustEqual parseString("1")
-//      parseString("1/(1/x)") mustEqual parseString("x")
-//      parseString("1/(1/(x-z))") mustEqual parseString("x-z")
-//      parseString("x*(1/y)") mustEqual parseString("x/y")
-//    }
-//
-//    "simplify expressions" in {
-//      parseString("x+0") mustEqual parseString("x")
-//      parseString("0+x") mustEqual parseString("x")
-//      parseString("x-x") mustEqual parseString("0")
-//      parseString("-x+x") mustEqual parseString("0")
-//      parseString("x*1") mustEqual parseString("x")
-//      parseString("1*x") mustEqual parseString("x")
-//      parseString("0*x") mustEqual parseString("0")
-//      parseString("x or x") mustEqual parseString("x")
-//      parseString("x or x") mustEqual parseString("x")
-//      parseString("x and x") mustEqual parseString("x")
-//      parseString("x or True") mustEqual parseString("True")
-//      parseString("x or False") mustEqual parseString("x")
-//      parseString("x and False") mustEqual parseString("False")
-//      parseString("x and True") mustEqual parseString("x")
-//      parseString("x==x") mustEqual parseString("True")
-//      parseString("x>=x") mustEqual parseString("True")
-//      parseString("x<=x") mustEqual parseString("True")
-//      parseString("x!=x") mustEqual parseString("False")
-//      parseString("x>x") mustEqual parseString("False")
-//      parseString("x<x") mustEqual parseString("False")
 //    }
 //
 //    "understand commutativity" in {

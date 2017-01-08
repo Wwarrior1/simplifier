@@ -40,7 +40,7 @@ class Parser extends JavaTokenParsers {
       _.toDouble
     }
 
-  val intLiteral: Parser[Integer] =
+  val intLiteral: Parser[Int] =
     """\d+""".r ^^ {
       _.toInt
     }
