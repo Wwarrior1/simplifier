@@ -2,6 +2,8 @@ package simplifier
 
 import AST._
 
+import scala.collection.mutable
+
 // to implement
 // avoid one huge match of cases
 // take into account non-greedy strategies to resolve cases with power laws
@@ -17,6 +19,9 @@ object Simplifier {
       case _other => _other
     }
 
+    case Tuple(nodes) =>
+      Tuple(nodes map simplify)
+
     case BinExpr(op, left, right) =>
       //      if (Set("+", "*", "or", "and").contains(op))
       simplifyBinExpr(ensureProperOrder(BinExpr(op, simplify(left), simplify(right))))
@@ -25,15 +30,14 @@ object Simplifier {
 
     case Unary(op, expr) => simplifyUnary(Unary(op, simplify(expr)))
 
-    case Tuple(nodes) =>
-      Tuple(nodes map simplify)
+    case KeyDatumList(list) => KeyDatumList(simplifyDuplicatedKeys(list))
 
     case _ => node
   }
 
   def checkBoundaryCondition(node: Node): Boolean = node match {
     case NodeList(List()) => false // empty list
-
+    case Assignment(x, y) if x == y => false
     case _ => true // default
   }
 
@@ -81,6 +85,7 @@ object Simplifier {
 
   //reordering commutative operators in order:
   //binary, unary, var, const
+  // TODO
   def ensureProperOrder(node: BinExpr): BinExpr = node match {
     //a _ b = b _ a; const <=> var
     case BinExpr(op, a: Const, b: Variable) => BinExpr(op, b, a)
@@ -108,4 +113,10 @@ object Simplifier {
     case _ => node
   }
 
+  def simplifyDuplicatedKeys(list: List[KeyDatum]): List[KeyDatum] = {
+    val returnMap: mutable.LinkedHashMap[Node, Node] = mutable.LinkedHashMap()
+    for (element <- list)
+      returnMap.update(simplify(element.key), simplify(element.value))
+    returnMap.toList.map(KeyDatum.tupled)
+  }
 }

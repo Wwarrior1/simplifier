@@ -171,13 +171,13 @@ class parserSpec extends Specification {
 //      parseString("x*y+x*z+v*y+v*z") mustEqual parseString("(x+v)*(y+z)")
 //    }
 //
-//    "remove duplicate keys" in {
-//      parseString("""{ "a": 1, "b": 2, "a": 3 }""") mustEqual parseString("""{ "a": 3, "b": 2 }""")
-//    }
-//
-//    "remove no effect instructions" in {
-//      parseString("x=x") mustEqual parseString("")
-//    }
+    "remove duplicate keys" in {
+      parseString("""{ "a": 1, "b": 2, "a": 3 }""") mustEqual parseString("""{ "a": 3, "b": 2 }""")
+    }
+
+    "remove no effect instructions" in {
+      parseString("x=x") mustEqual parseString("")
+    }
 //
 //    "remove dead assignments" in {
 //      parseString("x=a; x=b") mustEqual parseString("x=b")
