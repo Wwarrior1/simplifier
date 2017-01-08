@@ -98,7 +98,7 @@ class parserSpec extends Specification {
       parseString("x+0") mustEqual parseString("x")
       parseString("0+x") mustEqual parseString("x")
       parseString("x-x") mustEqual parseString("0")
-//      parseString("-x+x") mustEqual parseString("0")  // TODO
+      parseString("-x+x") mustEqual parseString("0")
       parseString("x*1") mustEqual parseString("x")
       parseString("1*x") mustEqual parseString("x")
       parseString("0*x") mustEqual parseString("0")
@@ -119,11 +119,31 @@ class parserSpec extends Specification {
     "simplify division" in {
       parseString("x/x") mustEqual parseString("1")
       parseString("(x+y*z)/(x+y*z)") mustEqual parseString("1")
-//      parseString("(x+y)/(y+x)") mustEqual parseString("1")
-//      parseString("(x+y*z)/(y*z+x)") mustEqual parseString("1")
-//      parseString("1/(1/x)") mustEqual parseString("x")
-//      parseString("1/(1/(x-z))") mustEqual parseString("x-z")
-//      parseString("x*(1/y)") mustEqual parseString("x/y")
+//      parseString("(x+y)/(y+x)") mustEqual parseString("1")     // TODO
+//      parseString("(x+y*z)/(y*z+x)") mustEqual parseString("1") // TODO
+//      parseString("1/(1/x)") mustEqual parseString("x")         // TODO
+//      parseString("1/(1/(x-z))") mustEqual parseString("x-z")   // TODO
+//      parseString("x*(1/y)") mustEqual parseString("x/y")       // TODO
+    }
+
+    "cancel double unary ops" in {
+      parseString("not not not x") mustEqual parseString("not x")
+      parseString("--x") mustEqual parseString("x")
+    }
+
+    "get rid of not before comparisons" in {
+      parseString("not x==y") mustEqual parseString("x!=y")
+      parseString("not x!=y") mustEqual parseString("x==y")
+      parseString("not x>y") mustEqual parseString("x<=y")
+      parseString("not x<y") mustEqual parseString("x>=y")
+      parseString("not x>=y") mustEqual parseString("x<y")
+      parseString("not x<=y") mustEqual parseString("x>y")
+    }
+
+    "evaluate constants" in {
+//      parseString("2+3*5") mustEqual parseString("17")  // TODO
+      parseString("not False") mustEqual parseString("True")
+      parseString("not True") mustEqual parseString("False")
     }
 
 //    "recognize power laws" in {
@@ -138,12 +158,6 @@ class parserSpec extends Specification {
 //      parseString("(x+y)**2-(x-y)**2") mustEqual parseString("4*x*y")
 //    }
 //
-//    "evaluate constants" in {
-//      parseString("2+3*5") mustEqual parseString("17")
-//      parseString("not False") mustEqual parseString("True")
-//      parseString("not True") mustEqual parseString("False")
-//    }
-//
 //    "understand commutativity" in {
 //      parseString("x+5-x") mustEqual parseString("5")
 //      parseString("(a or b) and (b or a)") mustEqual parseString("a or b")
@@ -155,20 +169,6 @@ class parserSpec extends Specification {
 //      parseString("x*z+y*z") mustEqual parseString("(x+y)*z")
 //      parseString("x*y+x*z") mustEqual parseString("x*(y+z)")
 //      parseString("x*y+x*z+v*y+v*z") mustEqual parseString("(x+v)*(y+z)")
-//    }
-//
-//    "cancel double unary ops" in {
-//      parseString("not not not x") mustEqual parseString("not x")
-//      parseString("--x") mustEqual parseString("x")
-//    }
-//
-//    "get rid of not before comparisons" in {
-//      parseString("not x==y") mustEqual parseString("x!=y")
-//      parseString("not x!=y") mustEqual parseString("x==y")
-//      parseString("not x>y") mustEqual parseString("x<=y")
-//      parseString("not x<y") mustEqual parseString("x>=y")
-//      parseString("not x>=y") mustEqual parseString("x<y")
-//      parseString("not x<=y") mustEqual parseString("x>y")
 //    }
 //
 //    "remove duplicate keys" in {

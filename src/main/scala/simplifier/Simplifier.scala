@@ -23,6 +23,8 @@ object Simplifier {
     //      else
     //        simplifyBinExpr(BinExpr(op, simplify(left), simplify(right)))
 
+    case Unary(op, expr) => simplifyUnary(Unary(op, simplify(expr)))
+
     case Tuple(nodes) =>
       Tuple(nodes map simplify)
 
@@ -70,6 +72,10 @@ object Simplifier {
 
     case Div2(x, y) if x == y => IntNum(1)    // x / x = 1
 
+    // Unary: x + (-x) = 0
+    case Add2(Unary("-", x), y) if x == y => IntNum(0)
+    case Add2(x, Unary("-", y)) if x == y => IntNum(0)
+
     case _ => node
   }
 
@@ -81,4 +87,25 @@ object Simplifier {
 
     case _ => node
   }
+
+  def simplifyUnary(node: Unary): Node = node match {
+    // cancel double unary ops
+    case Unary("-", Unary("-", x)) => x
+    case Unary("not", Unary("not", x)) => x
+
+    // get rid of not before comparisons
+    case Unary("not", BinExpr("==", x, y)) => BinExpr("!=", x, y)
+    case Unary("not", BinExpr("!=", x, y)) => BinExpr("==", x, y)
+    case Unary("not", BinExpr(">", x, y)) => BinExpr("<=", x, y)
+    case Unary("not", BinExpr("<", x, y)) => BinExpr(">=", x, y)
+    case Unary("not", BinExpr(">=", x, y)) => BinExpr("<", x, y)
+    case Unary("not", BinExpr("<=", x, y)) => BinExpr(">", x, y)
+
+    // evaluate constants
+    case Unary("not", TrueConst()) => FalseConst()
+    case Unary("not", FalseConst()) => TrueConst()
+
+    case _ => node
+  }
+
 }
