@@ -1,5 +1,9 @@
 package simplifier
 
+/**
+  * Wojciech Baczyński i Piotr Grabiec
+  */
+
 import AST.{BinExpr, Node}
 
 class BinOp(op: String) {

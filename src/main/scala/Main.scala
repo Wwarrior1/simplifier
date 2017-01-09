@@ -1,3 +1,7 @@
+/**
+  * Wojciech Baczyński i Piotr Grabiec
+  */
+
 import java.io.{FileNotFoundException, FileReader, IOException}
 
 object Main {

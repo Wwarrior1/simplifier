@@ -1,3 +1,7 @@
+/**
+  * Wojciech Baczyński i Piotr Grabiec
+  */
+
 import AST._
 import org.specs2.mutable._
 import simplifier.Simplifier.simplify

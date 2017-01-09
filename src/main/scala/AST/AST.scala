@@ -1,5 +1,9 @@
 package AST
 
+/**
+  * Wojciech Baczyński i Piotr Grabiec
+  */
+
 object Priority {
   val binary = Map("lambda" -> 1,
     "or" -> 2,

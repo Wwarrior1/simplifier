@@ -1,5 +1,9 @@
 import AST._
 
+/**
+  * Wojciech Baczyński i Piotr Grabiec
+  */
+
 import scala.util.matching.Regex
 import scala.util.parsing.combinator._
 

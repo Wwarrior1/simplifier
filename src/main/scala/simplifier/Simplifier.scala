@@ -1,5 +1,9 @@
 package simplifier
 
+/**
+  * Wojciech Baczyński i Piotr Grabiec
+  */
+
 import AST._
 
 import scala.collection.mutable
@@ -148,7 +152,7 @@ object Simplifier {
     case Div(x, y) if x == y => IntNum(1)     // x/x = 1
     case Div(y1, Div(y2, x))                  // 1/(1/x) = x
       if Set(y1, y2) subsetOf Set[Node](IntNum(1), FloatNum(1)) => x
-    case Mul(Div(num, y), x)                    // x*(1/y) = x/y
+    case Mul(Div(num, y), x)                  // x*(1/y) = x/y
       if Set[Node](IntNum(1), FloatNum(1)) contains num => Div(x, y)
 
     case _ => node
