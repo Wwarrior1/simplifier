@@ -178,11 +178,11 @@ class parserSpec extends Specification {
     "remove no effect instructions" in {
       parseString("x=x") mustEqual parseString("")
     }
-//
-//    "remove dead assignments" in {
-//      parseString("x=a; x=b") mustEqual parseString("x=b")
-//    }
-//
+
+    "remove dead assignments" in {
+      parseString("x=a; x=b") mustEqual parseString("x=b")
+    }
+
     "simplify if-else instruction with known condition" in {
       val if_stmt_str =
         """if %s:

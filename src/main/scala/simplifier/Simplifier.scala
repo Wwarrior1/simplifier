@@ -14,6 +14,9 @@ object Simplifier {
   val Div2 = new BinOp("/")
 
   def simplify(node: Node): Node = node match {
+    // "remove dead assignments"
+    case expr@NodeList(List(a@Assignment(x1, y), b@Assignment(x2, z))) if x1 == x2 => Assignment(x2, z)
+
     case NodeList(nodes) => NodeList(nodes map simplify filter checkBoundaryCondition) match {
       case NodeList(List(elem: NodeList)) => elem
       case _other => _other
@@ -30,6 +33,7 @@ object Simplifier {
 
     case Unary(op, expr) => simplifyUnary(Unary(op, simplify(expr)))
 
+    // "remove duplicate keys"
     case KeyDatumList(list) => KeyDatumList(simplifyDuplicatedKeys(list))
 
     case IfElseInstr(cond, left, right) => simplify(cond) match {
@@ -134,4 +138,5 @@ object Simplifier {
       returnMap.update(simplify(element.key), simplify(element.value))
     returnMap.toList.map(KeyDatum.tupled)
   }
+
 }
