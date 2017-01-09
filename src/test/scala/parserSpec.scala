@@ -153,24 +153,24 @@ class parserSpec extends Specification {
       parseString("x**0") mustEqual parseString("1")
       parseString("x**1") mustEqual parseString("x")
       parseString("(x**n)**m") mustEqual parseString("x**(n*m)")
-//      parseString("x**2+2*x*y+y**2") mustEqual parseString("(x+y)**2")
-//      parseString("(x+y)**2-x**2-2*x*y") mustEqual parseString("y**2")
+//      parseString("x**2+2*x*y+y**2") mustEqual parseString("(x+y)**2")  // TODO
+//      parseString("(x+y)**2-x**2-2*x*y") mustEqual parseString("y**2")  // TODO
       parseString("(x+y)**2-(x-y)**2") mustEqual parseString("4*x*y")
     }
 
-//    "understand commutativity" in {
-//      parseString("x+5-x") mustEqual parseString("5")
-//      parseString("(a or b) and (b or a)") mustEqual parseString("a or b")
-//      parseString("(a and b) or (b and a)") mustEqual parseString("a and b")
-//    }
+    "understand commutativity" in {
+      parseString("x+5-x") mustEqual parseString("5")
+//      parseString("(a or b) and (b or a)") mustEqual parseString("a or b")  // TODO
+//      parseString("(a and b) or (b and a)") mustEqual parseString("a and b")  // TODO
+    }
 
-//    "understand distributive property of multiplication" in {
-//      parseString("2*x-x") mustEqual parseString("x")
-//      parseString("x*z+y*z") mustEqual parseString("(x+y)*z")
-//      parseString("x*y+x*z") mustEqual parseString("x*(y+z)")
-//      parseString("x*y+x*z+v*y+v*z") mustEqual parseString("(x+v)*(y+z)")
-//    }
-//
+    "understand distributive property of multiplication" in {
+      parseString("2*x-x") mustEqual parseString("x")
+      parseString("x*z+y*z") mustEqual parseString("(x+y)*z")
+      parseString("x*y+x*z") mustEqual parseString("x*(y+z)")
+//      parseString("x*y+x*z+v*y+v*z") mustEqual parseString("(x+v)*(y+z)") // TODO
+    }
+
     "remove duplicate keys" in {
       parseString("""{ "a": 1, "b": 2, "a": 3 }""") mustEqual parseString("""{ "a": 3, "b": 2 }""")
     }

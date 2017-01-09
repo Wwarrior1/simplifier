@@ -115,12 +115,29 @@ object Simplifier {
     // x ** y * x ** z = x ** (y+z)
     case BinExpr("*", BinExpr("**", x1, y), BinExpr("**", x2, z))
       if x1 == x2 => simplify(BinExpr("**", x1, BinExpr("+", y, z)))
-
     //(x**n)**m" = x**(n*m)
     case BinExpr("**", BinExpr("**", x, n), m) => simplify(BinExpr("**", x, BinExpr("*", n, m)))
     //(x+y)**2-(x-y)**2 = 4*x*y
     case BinExpr("-", BinExpr("**", BinExpr("+", x1, y1), IntNum(2)), BinExpr("**", BinExpr("-", x2, y2), IntNum(2)))
       if x1 == x2 && y1 == y2 => simplify(BinExpr("*", BinExpr("*", IntNum(4), x1), y1))
+
+    // "understand distributive property of multiplication"
+    // 2*x-x = x
+    case BinExpr("-", BinExpr("*", x1, IntNum(2)), x2)
+      if x1 == x2 => x2
+    // x*z+y*z = (x+y)*z
+    case BinExpr("+", BinExpr("*", x, z1), BinExpr("*", y, z2))
+      if z1 == z2 => simplify(BinExpr("*", BinExpr("+", x, y), z2))
+    // x*y+x*z = x*(y+z)
+    case BinExpr("+", BinExpr("*", x1, y), BinExpr("*", x2, z))
+      if x1 == x2 => simplify(BinExpr("*", x2, BinExpr("+", y, z)))
+
+    // understand commutativity
+    // (x+5)-x = 5
+    case Sub2(Add2(x1, y), x2) if x1 == x2 => y
+    // (5+x)-x = 5
+    case Sub2(x1, Add2(x2, y)) if x1 == x2 => y
+
 
     case _ => node
   }
