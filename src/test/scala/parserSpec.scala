@@ -152,10 +152,10 @@ class parserSpec extends Specification {
       parseString("2**3**2") mustEqual parseString("512")
       parseString("x**0") mustEqual parseString("1")
       parseString("x**1") mustEqual parseString("x")
-//      parseString("(x**n)**m") mustEqual parseString("x**(n*m)")
+      parseString("(x**n)**m") mustEqual parseString("x**(n*m)")
 //      parseString("x**2+2*x*y+y**2") mustEqual parseString("(x+y)**2")
 //      parseString("(x+y)**2-x**2-2*x*y") mustEqual parseString("y**2")
-//      parseString("(x+y)**2-(x-y)**2") mustEqual parseString("4*x*y")
+      parseString("(x+y)**2-(x-y)**2") mustEqual parseString("4*x*y")
     }
 
 //    "understand commutativity" in {

@@ -116,6 +116,12 @@ object Simplifier {
     case BinExpr("*", BinExpr("**", x1, y), BinExpr("**", x2, z))
       if x1 == x2 => simplify(BinExpr("**", x1, BinExpr("+", y, z)))
 
+    //(x**n)**m" = x**(n*m)
+    case BinExpr("**", BinExpr("**", x, n), m) => simplify(BinExpr("**", x, BinExpr("*", n, m)))
+    //(x+y)**2-(x-y)**2 = 4*x*y
+    case BinExpr("-", BinExpr("**", BinExpr("+", x1, y1), IntNum(2)), BinExpr("**", BinExpr("-", x2, y2), IntNum(2)))
+      if x1 == x2 && y1 == y2 => simplify(BinExpr("*", BinExpr("*", IntNum(4), x1), y1))
+
     case _ => node
   }
 
