@@ -99,7 +99,7 @@ class Parser extends JavaTokenParsers {
   }
 
   def binary(level: Int): Parser[Node] =
-    if (level > maxPrec) unary
+    if (level > maxPrec) pow
     else chainl1(binary(level + 1), binaryOp(level)) // equivalent to binary(level+1) * binaryOp(level)
 
   // operator precedence parsing takes place here
@@ -107,6 +107,11 @@ class Parser extends JavaTokenParsers {
     precedenceList(level).map {
       op => op ^^^ ((a: Node, b: Node) => BinExpr(op, a, b))
     }.reduce((head, tail) => head | tail)
+  }
+
+  def pow: Parser[Node] = unary ~ ("**" ~> pow).? ^^ {
+    case unary ~ Some(pow) => BinExpr("**", unary, pow)
+    case unary ~ None => unary
   }
 
   def unary: Parser[Node] = (

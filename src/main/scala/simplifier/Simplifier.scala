@@ -99,6 +99,23 @@ object Simplifier {
     case Add2(Unary("-", x), y) if x == y => IntNum(0)
     case Add2(x, Unary("-", y)) if x == y => IntNum(0)
 
+    // Evaluating constants (and pow)
+    case BinExpr(operator, IntNum(a), IntNum(b)) => IntNum(mapOperator(operator, a, b).toInt)
+    case BinExpr(operator, IntNum(a), FloatNum(b)) => FloatNum(mapOperator(operator, a, b))
+    case BinExpr(operator, FloatNum(a), IntNum(b)) => FloatNum(mapOperator(operator, a, b))
+    case BinExpr(operator, FloatNum(a), FloatNum(b)) => FloatNum(mapOperator(operator, a, b))
+
+    // Power laws
+    // x ** 0 = 1
+    case BinExpr("**", _, IntNum(0)) => IntNum(1)
+    case BinExpr("**", _, FloatNum(0.0)) => FloatNum(1.0)
+    // x ** 1 = x
+    case BinExpr("**", x, IntNum(1)) => x
+    case BinExpr("**", x, FloatNum(1)) => x
+    // x ** y * x ** z = x ** (y+z)
+    case BinExpr("*", BinExpr("**", x1, y), BinExpr("**", x2, z))
+      if x1 == x2 => simplify(BinExpr("**", x1, BinExpr("+", y, z)))
+
     case _ => node
   }
 
@@ -139,4 +156,11 @@ object Simplifier {
     returnMap.toList.map(KeyDatum.tupled)
   }
 
+  def mapOperator(operator: String, x: Double, y: Double): Double = operator match {
+    case "+" => x + y
+    case "-" => x - y;
+    case "*" => x * y
+    case "/" => x / y;
+    case "**" => math.pow(x, y);
+  }
 }

@@ -141,29 +141,29 @@ class parserSpec extends Specification {
     }
 
     "evaluate constants" in {
-//      parseString("2+3*5") mustEqual parseString("17")  // TODO
+      parseString("2+3*5") mustEqual parseString("17")
       parseString("not False") mustEqual parseString("True")
       parseString("not True") mustEqual parseString("False")
     }
 
-//    "recognize power laws" in {
-//      parseString("x**y*x**z") must not(throwA[IllegalArgumentException])
-//      parseString("x**y*x**z") mustEqual parseString("x**(y+z)")
-//      parseString("2**3**2") mustEqual parseString("512")
-//      parseString("x**0") mustEqual parseString("1")
-//      parseString("x**1") mustEqual parseString("x")
+    "recognize power laws" in {
+      parseString("x**y*x**z") must not(throwA[IllegalArgumentException])
+      parseString("x**y*x**z") mustEqual parseString("x**(y+z)")
+      parseString("2**3**2") mustEqual parseString("512")
+      parseString("x**0") mustEqual parseString("1")
+      parseString("x**1") mustEqual parseString("x")
 //      parseString("(x**n)**m") mustEqual parseString("x**(n*m)")
 //      parseString("x**2+2*x*y+y**2") mustEqual parseString("(x+y)**2")
 //      parseString("(x+y)**2-x**2-2*x*y") mustEqual parseString("y**2")
 //      parseString("(x+y)**2-(x-y)**2") mustEqual parseString("4*x*y")
-//    }
-//
+    }
+
 //    "understand commutativity" in {
 //      parseString("x+5-x") mustEqual parseString("5")
 //      parseString("(a or b) and (b or a)") mustEqual parseString("a or b")
 //      parseString("(a and b) or (b and a)") mustEqual parseString("a and b")
 //    }
-//
+
 //    "understand distributive property of multiplication" in {
 //      parseString("2*x-x") mustEqual parseString("x")
 //      parseString("x*z+y*z") mustEqual parseString("(x+y)*z")
