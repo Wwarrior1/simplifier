@@ -123,7 +123,7 @@ class parserSpec extends Specification {
 //      parseString("(x+y*z)/(y*z+x)") mustEqual parseString("1") // TODO
       parseString("1/(1/x)") mustEqual parseString("x")
       parseString("1/(1/(x-z))") mustEqual parseString("x-z")
-      parseString("x*(1/y)") mustEqual parseString("x/y")       // TODO
+      parseString("x*(1/y)") mustEqual parseString("x/y")
     }
 
     "cancel double unary ops" in {
@@ -168,7 +168,7 @@ class parserSpec extends Specification {
       parseString("2*x-x") mustEqual parseString("x")
       parseString("x*z+y*z") mustEqual parseString("(x+y)*z")
       parseString("x*y+x*z") mustEqual parseString("x*(y+z)")
-      parseString("x*y+x*z+v*y+v*z") mustEqual parseString("(x+v)*(y+z)") // TODO
+      parseString("x*y+x*z+v*y+v*z") mustEqual parseString("(x+v)*(y+z)")
     }
 
     "remove duplicate keys" in {

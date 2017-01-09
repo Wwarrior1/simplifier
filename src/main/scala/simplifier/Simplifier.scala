@@ -4,9 +4,6 @@ import AST._
 
 import scala.collection.mutable
 
-// to implement
-// avoid one huge match of cases
-// take into account non-greedy strategies to resolve cases with power laws
 object Simplifier {
   val Add2 = new BinOp("+")
   val Sub2 = new BinOp("-")
@@ -25,6 +22,7 @@ object Simplifier {
     case Tuple(nodes) => Tuple(nodes map simplify)
 
     case BinExpr(op, left, right) =>
+      // Ensure expressions can be commutative only with commutative operators.
       if (Set("+", "*", "or", "and").contains(op))
         simplifyBinExpr(ensureCommutativity(BinExpr(op, simplify(left), simplify(right))))
       else
@@ -125,7 +123,8 @@ object Simplifier {
     case Sub2(x1, Add2(x2, y)) if x1 == x2 => y // (5+x)-x = 5
 
     // "Simplify division"
-    case Div2(x, y) if x == y => IntNum(1) // x/x = 1
+    // x/x = 1
+    case Div2(x, y) if x == y => IntNum(1)
     // 1/(1/x) = x
     case Div2(y1, Div2(y2, x)) if Set(y1, y2) subsetOf Set[Node](IntNum(1), FloatNum(1)) => x
     // x*(1/y) = x/y
@@ -135,14 +134,14 @@ object Simplifier {
   }
 
   // Ensure proper operators to be commutative.
-  // correct order: (binary -> unary -> variable -> const)
+  // Correct order: (binary -> unary -> variable -> const)
   def ensureCommutativity(node: BinExpr): BinExpr = node match {
     // TODO
-    // const <=> variable
+    // Const <=> Variable
     //   e.g. x+0 = 0+x // "simplify expressions"
     case BinExpr(op, const: Const, variable: Variable) => BinExpr(op, variable, const)
 
-    // const, variable, unary <=> binary
+    // Const, Variable, Unary <=> Binary
     //   e.g. x*y+x*z+v*y+v*z => (y+z)*x+v*y+v*z = (x+v)*(y+z) // "understand distributive property of multiplication"
     case BinExpr(op, const_variable_unary@(_: Const | _: Variable | _: Unary), binary: BinExpr) => BinExpr(op, binary, const_variable_unary)
 

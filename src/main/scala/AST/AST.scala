@@ -21,6 +21,7 @@ sealed abstract class Node {
 }
 
 sealed abstract class Const extends Node
+
 sealed abstract class Number extends Const
 
 case class IntNum(value: Int) extends Number {
