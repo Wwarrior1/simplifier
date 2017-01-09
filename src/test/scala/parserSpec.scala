@@ -119,8 +119,8 @@ class parserSpec extends Specification {
     "simplify division" in {
       parseString("x/x") mustEqual parseString("1")
       parseString("(x+y*z)/(x+y*z)") mustEqual parseString("1")
-//      parseString("(x+y)/(y+x)") mustEqual parseString("1")     // TODO
-//      parseString("(x+y*z)/(y*z+x)") mustEqual parseString("1") // TODO
+      parseString("(x+y)/(y+x)") mustEqual parseString("1")
+      parseString("(x+y*z)/(y*z+x)") mustEqual parseString("1")
       parseString("1/(1/x)") mustEqual parseString("x")
       parseString("1/(1/(x-z))") mustEqual parseString("x-z")
       parseString("x*(1/y)") mustEqual parseString("x/y")
@@ -160,8 +160,8 @@ class parserSpec extends Specification {
 
     "understand commutativity" in {
       parseString("x+5-x") mustEqual parseString("5")
-//      parseString("(a or b) and (b or a)") mustEqual parseString("a or b")  // TODO
-//      parseString("(a and b) or (b and a)") mustEqual parseString("a and b")  // TODO
+      parseString("(a or b) and (b or a)") mustEqual parseString("a or b")
+      parseString("(a and b) or (b and a)") mustEqual parseString("a and b")
     }
 
     "understand distributive property of multiplication" in {

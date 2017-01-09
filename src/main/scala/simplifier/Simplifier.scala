@@ -139,11 +139,19 @@ object Simplifier {
     // TODO
     // Const <=> Variable
     //   e.g. x+0 = 0+x // "simplify expressions"
-    case BinExpr(op, const: Const, variable: Variable) => BinExpr(op, variable, const)
+    case BinExpr(op, const: Const, variable: Variable) =>
+      BinExpr(op, variable, const)
 
     // Const, Variable, Unary <=> Binary
     //   e.g. x*y+x*z+v*y+v*z => (y+z)*x+v*y+v*z = (x+v)*(y+z) // "understand distributive property of multiplication"
-    case BinExpr(op, const_variable_unary@(_: Const | _: Variable | _: Unary), binary: BinExpr) => BinExpr(op, binary, const_variable_unary)
+    case BinExpr(op, const_variable_unary@(_: Const | _: Variable | _: Unary), binary: BinExpr) =>
+      BinExpr(op, binary, const_variable_unary)
+
+    // Variable <=> Variable
+    //   e.g. (a or b) and (b or a) = a or b // "understand commutativity"
+    case BinExpr(op, Variable(a), Variable(b))
+      if a > b => BinExpr(op, Variable(b), Variable(a))
+
 
     case _ => node
   }
