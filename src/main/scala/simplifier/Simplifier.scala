@@ -25,10 +25,10 @@ object Simplifier {
     case Tuple(nodes) => Tuple(nodes map simplify)
 
     case BinExpr(op, left, right) =>
-      //      if (Set("+", "*", "or", "and").contains(op))
-      simplifyBinExpr(ensureProperOrder(BinExpr(op, simplify(left), simplify(right))))
-    //      else
-    //        simplifyBinExpr(BinExpr(op, simplify(left), simplify(right)))
+      if (Set("+", "*", "or", "and").contains(op))
+        simplifyBinExpr(ensureCommutativity(BinExpr(op, simplify(left), simplify(right))))
+      else
+        simplifyBinExpr(BinExpr(op, simplify(left), simplify(right)))
 
     case Unary(op, expr) => simplifyUnary(Unary(op, simplify(expr)))
 
@@ -85,8 +85,6 @@ object Simplifier {
     // x != x | x > y | x < y = False
     case BinExpr("!=" | ">" | "<", x, y) if x == y => FalseConst()
 
-    case Div2(x, y) if x == y => IntNum(1) // x / x = 1
-
     // Unary: x + (-x) = 0
     case Add2(Unary("-", x), y) if x == y => IntNum(0)
     case Add2(x, Unary("-", y)) if x == y => IntNum(0)
@@ -118,19 +116,35 @@ object Simplifier {
       if z1 == z2 => simplify(BinExpr("*", BinExpr("+", x, y), z2))
     case BinExpr("+", BinExpr("*", x1, y), BinExpr("*", x2, z)) // x*y+x*z = x*(y+z)
       if x1 == x2 => simplify(BinExpr("*", x2, BinExpr("+", y, z)))
+    // x*y+x*z+v*y+v*z => (y+z)*x+v*y+v*z = (x+v)*(y+z)
+    case BinExpr("+", BinExpr("+", BinExpr("*", BinExpr("+", y1, z1), x), BinExpr("*", v1, y2)), BinExpr("*", v2, z2))
+      if y1 == y2 && z1 == z2 && v1 == v2 => simplify(BinExpr("*", BinExpr("+", x, v1), BinExpr("+", y1, z1)))
 
     // understand commutativity
     case Sub2(Add2(x1, y), x2) if x1 == x2 => y // (x+5)-x = 5
     case Sub2(x1, Add2(x2, y)) if x1 == x2 => y // (5+x)-x = 5
 
+    // "Simplify division"
+    case Div2(x, y) if x == y => IntNum(1) // x/x = 1
+    // 1/(1/x) = x
+    case Div2(y1, Div2(y2, x)) if Set(y1, y2) subsetOf Set[Node](IntNum(1), FloatNum(1)) => x
+    // x*(1/y) = x/y
+    case Mul2(Div2(o, y), x) if Set[Node](IntNum(1), FloatNum(1)) contains o => Div2(x, y)
+
     case _ => node
   }
 
-  // Ensure operators are in order: binary -> unary -> var -> const
-  def ensureProperOrder(node: BinExpr): BinExpr = node match {
+  // Ensure proper operators to be commutative.
+  // correct order: (binary -> unary -> variable -> const)
+  def ensureCommutativity(node: BinExpr): BinExpr = node match {
     // TODO
-    //a _ b = b _ a; const <=> var
-    case BinExpr(op, a: Const, b: Variable) => BinExpr(op, b, a)
+    // const <=> variable
+    //   e.g. x+0 = 0+x // "simplify expressions"
+    case BinExpr(op, const: Const, variable: Variable) => BinExpr(op, variable, const)
+
+    // const, variable, unary <=> binary
+    //   e.g. x*y+x*z+v*y+v*z => (y+z)*x+v*y+v*z = (x+v)*(y+z) // "understand distributive property of multiplication"
+    case BinExpr(op, const_variable_unary@(_: Const | _: Variable | _: Unary), binary: BinExpr) => BinExpr(op, binary, const_variable_unary)
 
     case _ => node
   }
