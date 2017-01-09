@@ -183,36 +183,36 @@ class parserSpec extends Specification {
 //      parseString("x=a; x=b") mustEqual parseString("x=b")
 //    }
 //
-//    "simplify if-else instruction with known condition" in {
-//      val if_stmt_str =
-//        """if %s:
-//                     {
-//                        x = 1
-//                     }
-//                     else:
-//                     {
-//                        x = 0
-//                     } """
-//
-//      parseString(if_stmt_str.format("True")) mustEqual parseString("x=1")
-//      parseString(if_stmt_str.format("False")) mustEqual parseString("x=0")
-//    }
-//
-//    "simplify if-else expression with known condition" in {
-//      val if_expr_str = "x = y if %s else z"
-//      parseString(if_expr_str.format("True")) mustEqual parseString("x=y")
-//      parseString(if_expr_str.format("False")) mustEqual parseString("x=z")
-//    }
-//
-//    "remove while loop with False condition" in {
-//      val str =
-//        """while False:
-//                     {
-//                        x = x + 1
-//                     } """
-//
-//      parseString(str) mustEqual parseString("")
-//    }
+    "simplify if-else instruction with known condition" in {
+      val if_stmt_str =
+        """if %s:
+                     {
+                        x = 1
+                     }
+                     else:
+                     {
+                        x = 0
+                     } """
+
+      parseString(if_stmt_str.format("True")) mustEqual parseString("x=1")
+      parseString(if_stmt_str.format("False")) mustEqual parseString("x=0")
+    }
+
+    "simplify if-else expression with known condition" in {
+      val if_expr_str = "x = y if %s else z"
+      parseString(if_expr_str.format("True")) mustEqual parseString("x=y")
+      parseString(if_expr_str.format("False")) mustEqual parseString("x=z")
+    }
+
+    "remove while loop with False condition" in {
+      val str =
+        """while False:
+                     {
+                        x = x + 1
+                     } """
+
+      parseString(str) mustEqual parseString("")
+    }
 
   }
 

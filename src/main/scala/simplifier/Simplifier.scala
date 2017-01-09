@@ -32,12 +32,27 @@ object Simplifier {
 
     case KeyDatumList(list) => KeyDatumList(simplifyDuplicatedKeys(list))
 
+    case IfElseInstr(cond, left, right) => simplify(cond) match {
+      case TrueConst() => simplify(left)
+      case FalseConst() => simplify(right)
+      case _cond => IfElseInstr(_cond, simplify(left), simplify(right))
+    }
+
+    case IfElseExpr(cond, left, right) => simplify(cond) match {
+      case TrueConst() => simplify(left)
+      case FalseConst() => simplify(right)
+      case _cond => IfElseExpr(_cond, simplify(left), simplify(right))
+    }
+    case Assignment(left, right) => Assignment(simplify(left), simplify(right))
+
     case _ => node
   }
 
   def checkBoundaryCondition(node: Node): Boolean = node match {
-    case NodeList(List()) => false // empty list
-    case Assignment(x, y) if x == y => false
+    case NodeList(List()) => false            // empty list
+    case Assignment(x, y) if x == y => false  // "remove no effect instructions'
+    case WhileInstr(FalseConst(), _) => false // "remove while loop with False condition"
+
     case _ => true // default
   }
 
