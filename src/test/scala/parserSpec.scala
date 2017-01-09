@@ -9,8 +9,8 @@ class parserSpec extends Specification {
     val parseResult = parser.parseAll(parser.program, str + "\n")
 
     parseResult match {
-      case parser.Success(result: List[AST.Node], in) => simplify(NodeList(result))
-      case parser.NoSuccess(msg: String, in) => throw new IllegalArgumentException("FAILURE Could not parse '" + str + "': " + msg)
+      case parser.Success(result: List[AST.Node], _) => simplify(NodeList(result))
+      case parser.NoSuccess(msg: String, _) => throw new IllegalArgumentException("FAILURE Could not parse '" + str + "': " + msg)
     }
   }
 
@@ -21,7 +21,7 @@ class parserSpec extends Specification {
       parseString("a not b") must throwA[IllegalArgumentException]
     }
 
-    "recognize elif branches in if-else stmts" in {
+    "recognize elif branches in if-else statements" in {
       val if_stmt_str =
         """if x>1:
              {

@@ -76,8 +76,8 @@ object Simplifier {
 
   def simplifyBinExpr(node: BinExpr): Node = node match {
     // --- Recognize tuples & concatenate lists
-    case BinExpr("+", Tuple(a), Tuple(b)) => Tuple(a ++ b)
-    case BinExpr("+", ElemList(a), ElemList(b)) => ElemList(a ++ b)
+    case BinExpr("+", Tuple(x), Tuple(y)) => Tuple(x ++ y)
+    case BinExpr("+", ElemList(x), ElemList(y)) => ElemList(x ++ y)
 
     // --- Simplify expressions
     case Add(x, IntNum(0)) => x             // x+0 = x
@@ -90,8 +90,8 @@ object Simplifier {
 
     case BinExpr("or", x, y) if x == y => x               // x or x = x
     case BinExpr("and", x, y) if x == y => x              // x and x = x
-    case BinExpr("or", x, TrueConst()) => TrueConst()     // x or True = True
-    case BinExpr("and", x, FalseConst()) => FalseConst()  // x and False = False
+    case BinExpr("or", _, TrueConst()) => TrueConst()     // x or True = True
+    case BinExpr("and", _, FalseConst()) => FalseConst()  // x and False = False
     case BinExpr("or", x, FalseConst()) => x              // x or False = x
     case BinExpr("and", x, TrueConst()) => x              // x and True = x
 
@@ -103,10 +103,10 @@ object Simplifier {
     case Add(x, Unary("-", y)) if x == y => IntNum(0)
 
     // --- Evaluating constants (and pow)
-    case BinExpr(operator, IntNum(a), IntNum(b)) => IntNum(mapOperator(operator, a, b).toInt)
-    case BinExpr(operator, IntNum(a), FloatNum(b)) => FloatNum(mapOperator(operator, a, b))
-    case BinExpr(operator, FloatNum(a), IntNum(b)) => FloatNum(mapOperator(operator, a, b))
-    case BinExpr(operator, FloatNum(a), FloatNum(b)) => FloatNum(mapOperator(operator, a, b))
+    case BinExpr(operator, IntNum(x), IntNum(y)) => IntNum(mapOperator(operator, x, y).toInt)
+    case BinExpr(operator, IntNum(x), FloatNum(y)) => FloatNum(mapOperator(operator, x, y))
+    case BinExpr(operator, FloatNum(x), IntNum(y)) => FloatNum(mapOperator(operator, x, y))
+    case BinExpr(operator, FloatNum(x), FloatNum(y)) => FloatNum(mapOperator(operator, x, y))
 
     // --- Power laws
     case BinExpr("**", _, IntNum(0)) => IntNum(1) // x**0 = 1
@@ -148,8 +148,8 @@ object Simplifier {
     case Div(x, y) if x == y => IntNum(1)     // x/x = 1
     case Div(y1, Div(y2, x))                  // 1/(1/x) = x
       if Set(y1, y2) subsetOf Set[Node](IntNum(1), FloatNum(1)) => x
-    case Mul(Div(o, y), x)                    // x*(1/y) = x/y
-      if Set[Node](IntNum(1), FloatNum(1)) contains o => Div(x, y)
+    case Mul(Div(num, y), x)                    // x*(1/y) = x/y
+      if Set[Node](IntNum(1), FloatNum(1)) contains num => Div(x, y)
 
     case _ => node
   }
@@ -175,9 +175,9 @@ object Simplifier {
 
     // --- TripleOp ---
     // Const <=> Variable
-    //   e.g. x**2+2*x*y+y**2 = (x+y)**2
-    case BinExpr(op, BinExpr(op2, a, b: Const), c: Variable)
-      if op == op2 => BinExpr(op, ensureCommutativity(BinExpr(op, a, c)), b)
+    //   e.g. x**2 + 2*x*y + y**2 = (x+y)**2
+    case BinExpr(op1, BinExpr(op2, x, y: Const), num: Variable)
+      if op1 == op2 => BinExpr(op1, ensureCommutativity(BinExpr(op1, x, num)), y)
 
     case _ => node
   }

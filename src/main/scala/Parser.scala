@@ -127,17 +127,15 @@ class Parser extends JavaTokenParsers {
       | "(" ~> expression <~ ")"
       | "(" ~> expr_list_comma <~ ")" ^^ {
       case NodeList(x) => Tuple(x)
-      case l => {
+      case l =>
         println("Warn: expr_list_comma didn't return NodeList (in Tuple)")
         l
-      }
     }
       | "[" ~> expr_list_comma <~ "]" ^^ {
       case NodeList(x) => ElemList(x)
-      case l => {
+      case l =>
         println("Warn: expr_list_comma didn't return NodeList (in List)")
         l
-      }
     }
       | "{" ~> key_datum_list <~ "}"
     )
@@ -146,13 +144,13 @@ class Parser extends JavaTokenParsers {
     case id ~ list => foldTrailer(Variable(id), list)
   }
 
-  def trailer: Parser[List[Tuple2[String, Node]]] = rep(
+  def trailer: Parser[List[(String, Node)]] = rep(
     "(" ~> expr_list <~ ")" ^^ (expr_list => Tuple2("(", expr_list))
       | "[" ~> expression <~ "]" ^^ (expression => Tuple2("[", expression))
       | "." ~> id ^^ (id => Tuple2(".", Variable(id)))
   )
 
-  def foldTrailer(head: Node, list: List[Tuple2[String, Node]]): Node = {
+  def foldTrailer(head: Node, list: List[(String, Node)]): Node = {
     list match {
       case Tuple2(".", Variable(id)) :: tail => foldTrailer(GetAttr(head, id), tail)
       case Tuple2("(", attr) :: tail => foldTrailer(FunCall(head, attr), tail)
@@ -228,7 +226,7 @@ class Parser extends JavaTokenParsers {
 
   def if_else_stmt: Parser[Node] = {
     "if" ~> expression ~ (":" ~> suite) ~ ("elif" ~> expression ~ ":" ~ suite).* ~ ("else" ~ ":" ~> suite).? ^^ {
-      case expression ~ suite ~ elifList ~ None => {
+      case expression ~ suite ~ elifList ~ None =>
         val elifListToClean = elifList.map { case expr ~ ":" ~ suite => (expr, suite) }
 
         def expandElif(elif: List[(Node, Node)]): Node = elif match {
@@ -237,8 +235,8 @@ class Parser extends JavaTokenParsers {
         }
 
         IfElseInstr(expression, suite, expandElif(elifListToClean))
-      }
-      case expression ~ suite1 ~ elifList ~ Some(suite2) => {
+
+      case expression ~ suite1 ~ elifList ~ Some(suite2) =>
         val elifListToClean = elifList.map { case expr ~ ":" ~ suite => (expr, suite) }
 
         def expandElif(elif: List[(Node, Node)], finalElse: Node): Node = elif match {
@@ -249,7 +247,6 @@ class Parser extends JavaTokenParsers {
         }
 
         IfElseInstr(expression, suite1, expandElif(elifListToClean, suite2))
-      }
     }
   }
 
