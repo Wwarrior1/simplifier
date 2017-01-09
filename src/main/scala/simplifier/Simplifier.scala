@@ -5,10 +5,13 @@ import AST._
 import scala.collection.mutable
 
 object Simplifier {
-  val Add2 = new BinOp("+")
-  val Sub2 = new BinOp("-")
-  val Mul2 = new BinOp("*")
-  val Div2 = new BinOp("/")
+  val Add = new BinOp("+")
+  val Sub = new BinOp("-")
+  val Mul = new BinOp("*")
+  val Div = new BinOp("/")
+  val Pow = new BinOp("**")
+  val Add_Triple = new TripleOp("+")
+  val Mul_Triple = new TripleOp("*")
 
   def simplify(node: Node): Node = node match {
     // "remove dead assignments"
@@ -46,54 +49,66 @@ object Simplifier {
       case _cond => IfElseExpr(_cond, simplify(left), simplify(right))
     }
 
+    // --- Rest of simplifying from AST ---
+    // (not necessary to pass actual tests)
+    case Subscription(expr, sub) => Subscription(simplify(expr), simplify(sub))
+    case KeyDatum(key, value) => KeyDatum(simplify(key), simplify(value))
+    case GetAttr(expr, attr) => GetAttr(simplify(expr), attr)
+    case IfInstr(cond, left) => IfInstr(simplify(cond), simplify(left))
+    case WhileInstr(cond, body) => WhileInstr(simplify(cond), simplify(body))
+    case ReturnInstr(e) => ReturnInstr(simplify(e))
+    case PrintInstr(e) => PrintInstr(simplify(e))
+    case FunCall(name, args_list) => FunCall(simplify(name), simplify(args_list))
+    case FunDef(name, formal_args, body) => FunDef(name, simplify(formal_args), simplify(body))
+    case LambdaDef(formal_args, body) => LambdaDef(simplify(formal_args), simplify(body))
+    case ClassDef(name, inherit_list, suite) => ClassDef(name, simplify(inherit_list), simplify(suite))
+    case ElemList(nodes) => ElemList(nodes map simplify)
+
     case _ => node
   }
 
   def checkBoundaryCondition(node: Node): Boolean = node match {
-    case NodeList(List()) => false // empty list
-    case Assignment(x, y) if x == y => false // "remove no effect instructions'
+    case NodeList(List()) => false            // empty list
+    case Assignment(x, y) if x == y => false  // "remove no effect instructions'
     case WhileInstr(FalseConst(), _) => false // "remove while loop with False condition"
-
-    case _ => true // default
+    case _ => true
   }
 
   def simplifyBinExpr(node: BinExpr): Node = node match {
-    // --- recognize tuples & concatenate lists
+    // --- Recognize tuples & concatenate lists
     case BinExpr("+", Tuple(a), Tuple(b)) => Tuple(a ++ b)
     case BinExpr("+", ElemList(a), ElemList(b)) => ElemList(a ++ b)
 
-    // --- simplify expressions
-    case Add2(x, IntNum(0)) => x // x+0 = x
-    case Add2(x, FloatNum(0)) => x // x+0 = x
-    case Sub2(x, y) if x == y => IntNum(0) // x-x = 0
-    case Mul2(x, IntNum(1)) => x // x*1 = x
-    case Mul2(x, FloatNum(1)) => x // x*1 = x
-    case Mul2(x, IntNum(0)) => IntNum(0) // x*0 = 0
-    case Mul2(x, FloatNum(0)) => FloatNum(0)
+    // --- Simplify expressions
+    case Add(x, IntNum(0)) => x             // x+0 = x
+    case Add(x, FloatNum(0)) => x           // x+0 = x
+    case Sub(x, y) if x == y => IntNum(0)   // x-x = 0
+    case Mul(x, IntNum(1)) => x             // x*1 = x
+    case Mul(x, FloatNum(1)) => x           // x*1 = x
+    case Mul(_, IntNum(0)) => IntNum(0)     // x*0 = 0
+    case Mul(_, FloatNum(0)) => FloatNum(0)
 
-    case BinExpr("or", x, y) if x == y => x // x or x = x
-    case BinExpr("and", x, y) if x == y => x // x and x = x
-    case BinExpr("or", x, TrueConst()) => TrueConst() // x or True = True
-    case BinExpr("and", x, FalseConst()) => FalseConst() // x and False = False
-    case BinExpr("or", x, FalseConst()) => x // x or False = x
-    case BinExpr("and", x, TrueConst()) => x // x and True = x
+    case BinExpr("or", x, y) if x == y => x               // x or x = x
+    case BinExpr("and", x, y) if x == y => x              // x and x = x
+    case BinExpr("or", x, TrueConst()) => TrueConst()     // x or True = True
+    case BinExpr("and", x, FalseConst()) => FalseConst()  // x and False = False
+    case BinExpr("or", x, FalseConst()) => x              // x or False = x
+    case BinExpr("and", x, TrueConst()) => x              // x and True = x
 
-    // x == x | x >= y | x <= y = True
     case BinExpr("==" | ">=" | "<=", x, y) if x == y => TrueConst()
-    // x != x | x > y | x < y = False
     case BinExpr("!=" | ">" | "<", x, y) if x == y => FalseConst()
 
-    // Unary: x + (-x) = 0
-    case Add2(Unary("-", x), y) if x == y => IntNum(0)
-    case Add2(x, Unary("-", y)) if x == y => IntNum(0)
+    // --- Unary: x+(-x) = 0
+    case Add(Unary("-", x), y) if x == y => IntNum(0)
+    case Add(x, Unary("-", y)) if x == y => IntNum(0)
 
-    // Evaluating constants (and pow)
+    // --- Evaluating constants (and pow)
     case BinExpr(operator, IntNum(a), IntNum(b)) => IntNum(mapOperator(operator, a, b).toInt)
     case BinExpr(operator, IntNum(a), FloatNum(b)) => FloatNum(mapOperator(operator, a, b))
     case BinExpr(operator, FloatNum(a), IntNum(b)) => FloatNum(mapOperator(operator, a, b))
     case BinExpr(operator, FloatNum(a), FloatNum(b)) => FloatNum(mapOperator(operator, a, b))
 
-    // Power laws
+    // --- Power laws
     case BinExpr("**", _, IntNum(0)) => IntNum(1) // x**0 = 1
     case BinExpr("**", _, FloatNum(0.0)) => FloatNum(1.0)
     case BinExpr("**", x, IntNum(1)) => x // x**1 = x
@@ -106,29 +121,35 @@ object Simplifier {
     //(x+y)**2 - (x-y)**2 = 4*x*y
     case BinExpr("-", BinExpr("**", BinExpr("+", x1, y1), IntNum(2)), BinExpr("**", BinExpr("-", x2, y2), IntNum(2)))
       if x1 == x2 && y1 == y2 => simplify(BinExpr("*", BinExpr("*", IntNum(4), x1), y1))
+    // --- Triple ---
+    // x**2 + 2*x*y + y**2" = (x+y)**2
+    case Add_Triple(Pow(x1, IntNum(2)), Mul_Triple(x2, y1, IntNum(2)), Pow(y2, IntNum(2)))
+      if x1 == x2 && y1 == y2 => simplify(BinExpr("**", BinExpr("+", x1, y1), IntNum(2)))
+    // (x+y)**2 - x**2 - 2*x*y = y**2
+    case BinExpr("-", BinExpr("-", BinExpr("**", BinExpr("+", x1, y1), IntNum(2)), Pow(x2, IntNum(2))), Mul_Triple(x3, y2, IntNum(2)))
+      if x1 == x2 && x2 == x3 && y1 == y2 => simplify(BinExpr("**", y1, IntNum(2)))
 
-    // "understand distributive property of multiplication"
-    case BinExpr("-", BinExpr("*", x1, IntNum(2)), x2) // 2*x-x = x
+    // --- "Understand distributive property of multiplication"
+    case BinExpr("-", BinExpr("*", x1, IntNum(2)), x2)            // 2*x-x = x
       if x1 == x2 => x2
-    case BinExpr("+", BinExpr("*", x, z1), BinExpr("*", y, z2)) // x*z+y*z = (x+y)*z
+    case BinExpr("+", BinExpr("*", x, z1), BinExpr("*", y, z2))   // x*z+y*z = (x+y)*z
       if z1 == z2 => simplify(BinExpr("*", BinExpr("+", x, y), z2))
-    case BinExpr("+", BinExpr("*", x1, y), BinExpr("*", x2, z)) // x*y+x*z = x*(y+z)
+    case BinExpr("+", BinExpr("*", x1, y), BinExpr("*", x2, z))   // x*y+x*z = x*(y+z)
       if x1 == x2 => simplify(BinExpr("*", x2, BinExpr("+", y, z)))
     // x*y+x*z+v*y+v*z => (y+z)*x+v*y+v*z = (x+v)*(y+z)
     case BinExpr("+", BinExpr("+", BinExpr("*", BinExpr("+", y1, z1), x), BinExpr("*", v1, y2)), BinExpr("*", v2, z2))
       if y1 == y2 && z1 == z2 && v1 == v2 => simplify(BinExpr("*", BinExpr("+", x, v1), BinExpr("+", y1, z1)))
 
-    // understand commutativity
-    case Sub2(Add2(x1, y), x2) if x1 == x2 => y // (x+5)-x = 5
-    case Sub2(x1, Add2(x2, y)) if x1 == x2 => y // (5+x)-x = 5
+    // --- "Understand commutativity"
+    case Sub(Add(x1, y), x2) if x1 == x2 => y // (x+5)-x = 5
+    case Sub(x1, Add(x2, y)) if x1 == x2 => y // (5+x)-x = 5
 
-    // "Simplify division"
-    // x/x = 1
-    case Div2(x, y) if x == y => IntNum(1)
-    // 1/(1/x) = x
-    case Div2(y1, Div2(y2, x)) if Set(y1, y2) subsetOf Set[Node](IntNum(1), FloatNum(1)) => x
-    // x*(1/y) = x/y
-    case Mul2(Div2(o, y), x) if Set[Node](IntNum(1), FloatNum(1)) contains o => Div2(x, y)
+    // --- "Simplify division"
+    case Div(x, y) if x == y => IntNum(1)     // x/x = 1
+    case Div(y1, Div(y2, x))                  // 1/(1/x) = x
+      if Set(y1, y2) subsetOf Set[Node](IntNum(1), FloatNum(1)) => x
+    case Mul(Div(o, y), x)                    // x*(1/y) = x/y
+      if Set[Node](IntNum(1), FloatNum(1)) contains o => Div(x, y)
 
     case _ => node
   }
@@ -136,7 +157,7 @@ object Simplifier {
   // Ensure proper operators to be commutative.
   // Correct order: (binary -> unary -> variable -> const)
   def ensureCommutativity(node: BinExpr): BinExpr = node match {
-    // TODO
+    // --- BinOp ---
     // Const <=> Variable
     //   e.g. x+0 = 0+x // "simplify expressions"
     case BinExpr(op, const: Const, variable: Variable) =>
@@ -152,16 +173,21 @@ object Simplifier {
     case BinExpr(op, Variable(a), Variable(b))
       if a > b => BinExpr(op, Variable(b), Variable(a))
 
+    // --- TripleOp ---
+    // Const <=> Variable
+    //   e.g. x**2+2*x*y+y**2 = (x+y)**2
+    case BinExpr(op, BinExpr(op2, a, b: Const), c: Variable)
+      if op == op2 => BinExpr(op, ensureCommutativity(BinExpr(op, a, c)), b)
 
     case _ => node
   }
 
   def simplifyUnary(node: Unary): Node = node match {
-    // cancel double unary ops
+    // Simplify double unary
     case Unary("-", Unary("-", x)) => x
     case Unary("not", Unary("not", x)) => x
 
-    // get rid of not before comparisons
+    // Simplify 'not'
     case Unary("not", BinExpr("==", x, y)) => BinExpr("!=", x, y)
     case Unary("not", BinExpr("!=", x, y)) => BinExpr("==", x, y)
     case Unary("not", BinExpr(">", x, y)) => BinExpr("<=", x, y)
@@ -169,7 +195,7 @@ object Simplifier {
     case Unary("not", BinExpr(">=", x, y)) => BinExpr("<", x, y)
     case Unary("not", BinExpr("<=", x, y)) => BinExpr(">", x, y)
 
-    // evaluate constants
+    // Evaluate constants
     case Unary("not", TrueConst()) => FalseConst()
     case Unary("not", FalseConst()) => TrueConst()
 

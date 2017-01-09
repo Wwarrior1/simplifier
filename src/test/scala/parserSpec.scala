@@ -39,7 +39,6 @@ class parserSpec extends Specification {
              {
                 y = 1
              } """
-
       parseString(if_stmt_str) must not(throwA[IllegalArgumentException])
       parseString(if_stmt_str) mustEqual parseString(
         """if x>1:
@@ -77,7 +76,6 @@ class parserSpec extends Specification {
       parser.parseAll(parser.expression, "f(x)").get mustEqual FunCall(Variable("f"), NodeList(List(Variable("x"))))
       parser.parseAll(parser.expression, "x.y").get mustEqual GetAttr(Variable("x"), "y")
     }
-
   }
 
   "simplifier" should {
@@ -153,8 +151,8 @@ class parserSpec extends Specification {
       parseString("x**0") mustEqual parseString("1")
       parseString("x**1") mustEqual parseString("x")
       parseString("(x**n)**m") mustEqual parseString("x**(n*m)")
-//      parseString("x**2+2*x*y+y**2") mustEqual parseString("(x+y)**2")  // TODO
-//      parseString("(x+y)**2-x**2-2*x*y") mustEqual parseString("y**2")  // TODO
+      parseString("x**2+2*x*y+y**2") mustEqual parseString("(x+y)**2")
+      parseString("(x+y)**2-x**2-2*x*y") mustEqual parseString("y**2")
       parseString("(x+y)**2-(x-y)**2") mustEqual parseString("4*x*y")
     }
 
@@ -193,7 +191,6 @@ class parserSpec extends Specification {
                      {
                         x = 0
                      } """
-
       parseString(if_stmt_str.format("True")) mustEqual parseString("x=1")
       parseString(if_stmt_str.format("False")) mustEqual parseString("x=0")
     }
@@ -210,10 +207,7 @@ class parserSpec extends Specification {
                      {
                         x = x + 1
                      } """
-
       parseString(str) mustEqual parseString("")
     }
-
   }
-
 }
